@@ -4,7 +4,7 @@ import os
 import argparse
 
 
-SLEEP_SECS = 1
+SLEEP_SECS = 0.5
 URL_PATERN = "https://www.imdb.com/title/{}"
 
 
