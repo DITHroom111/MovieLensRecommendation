@@ -15,3 +15,6 @@ Some data stats:
 - users in dev:  134597
 - movies in train:  20707
 - movies in dev:  16907
+
+
+imdb htmls: https://yadi.sk/d/2ybgIxmTymjZTw
