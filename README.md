@@ -18,3 +18,5 @@ Some data stats:
 
 
 imdb htmls: https://yadi.sk/d/2ybgIxmTymjZTw
+
+imdb texts: https://yadi.sk/d/10R2k_DwK067sg
