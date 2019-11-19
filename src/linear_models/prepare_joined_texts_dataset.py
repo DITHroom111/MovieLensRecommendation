@@ -6,7 +6,7 @@ def read_texts(texts_file):
     with open(texts_file, 'r') as handler:
         texts = {}
         for line in handler:
-            tconst, text = line.split("\t")
+            tconst, text = line.strip().split("\t")
             assert tconst not in texts
             texts[tconst] = text
         return texts
@@ -66,21 +66,24 @@ def main(ratings_file, texts_file, imdb_file, output_file, min_rating, max_ratin
     print("Ratings sorted")
 
     dataset = []
-    user_texts = defaultdict(lambda: "")
+    user_text_ids = defaultdict(list)
     for user_id, movie_id, timestamp, rating in ratings:
         if movie_id not in movie_id_to_text:
             continue
 
-        dataset.append((user_id, movie_id, user_texts[user_id], movie_id_to_text[movie_id], rating))
+        dataset.append([user_id, movie_id, movie_id_to_text[movie_id], rating, user_text_ids[user_id][:]])
 
         if (rating < max_rating) and (rating > min_rating):
-            user_texts[user_id] += "\n" + movie_id_to_text[movie_id]
+            user_text_ids[user_id].append(movie_id)
 
     print("dataset is ready")
 
     with open(output_file, 'w') as handler:
-        for obj in dataset:
-            handler.write("\t".join(map(str, obj)) + "\n")
+        for i, obj in enumerate(dataset):
+            if i % 10000 == 0:
+                print("{} / {}".format(i, len(dataset)))
+            obj[-1] = "\n".join(map(lambda movie_id: movie_id_to_text[movie_id], obj[-1]))
+            handler.write("\t".join(map(str, obj)))
 
 
 if __name__ == "__main__":
