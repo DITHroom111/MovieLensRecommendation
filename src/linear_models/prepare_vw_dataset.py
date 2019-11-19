@@ -28,7 +28,7 @@ def read_texts(texts_file):
         for line in handler:
             tconst, text = line.strip().split("\t")
             assert tconst not in texts
-            texts[tconst] = " ".join(extract_bag_of_words(text))
+            texts[tconst] = extract_bag_of_words(text)
         return texts
 
 
@@ -86,28 +86,31 @@ def main(ratings_file, texts_file, imdb_file, output_file, min_rating, max_ratin
     print("Ratings sorted")
 
     dataset = []
-    user_text_ids = defaultdict(list)
-    for user_id, movie_id, timestamp, rating in ratings:
+    user_words = defaultdict(set)
+    for i, (user_id, movie_id, timestamp, rating) in enumerate(ratings):
+        if i % 100000 == 0:
+            print("Calculating intersections {} / {}".format(i, len(ratings)))
+
         if movie_id not in movie_id_to_text:
             continue
+        
+        intersetion_words = movie_id_to_text[movie_id] & user_words[user_id]
 
-        dataset.append([user_id, movie_id, movie_id_to_text[movie_id], rating, user_text_ids[user_id][:]])
+        dataset.append([user_id, movie_id, rating, " ".join(intersetion_words)])
 
         if (rating < max_rating) and (rating > min_rating):
-            user_text_ids[user_id].append(movie_id)
+            user_words[user_id].update(movie_id_to_text[movie_id])
 
     print("dataset is ready")
 
     with open(output_file, 'w') as handler:
         for i, obj in enumerate(dataset):
-            if i % 10000 == 0:
-                print("{} / {}".format(i, len(dataset)))
-            user_texts = map(lambda movie_id: movie_id_to_text[movie_id], obj[-1])
-            handler.write("\t".join(map(str, obj[:-1])))
-            handler.write("\t")
-            for text in user_texts:
-                handler.write(text)
-                handler.write("\n")
+            if i % 100000 == 0:
+                print("Writing ooutput {} / {}".format(i, len(dataset)))
+            for string in map(str, obj):
+                handler.write(string)
+                handler.write("\t")
+            handler.write("\n")
 
 
 if __name__ == "__main__":
