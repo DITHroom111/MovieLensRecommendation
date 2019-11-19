@@ -82,8 +82,12 @@ def main(ratings_file, texts_file, imdb_file, output_file, min_rating, max_ratin
         for i, obj in enumerate(dataset):
             if i % 10000 == 0:
                 print("{} / {}".format(i, len(dataset)))
-            obj[-1] = "\n".join(map(lambda movie_id: movie_id_to_text[movie_id], obj[-1]))
-            handler.write("\t".join(map(str, obj)))
+            user_texts = map(lambda movie_id: movie_id_to_text[movie_id], obj[-1])
+            handler.write("\t".join(map(str, obj[:-1])))
+            handler.write("\t")
+            for text in user_texts:
+                handler.write(text)
+                handler.write("\n")
 
 
 if __name__ == "__main__":
