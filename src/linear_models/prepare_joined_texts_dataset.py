@@ -1,5 +1,26 @@
 import argparse
 from collections import defaultdict
+import nltk
+from nltk.tokenize import word_tokenize
+import re
+import math
+ 
+# nltk.download('stopwords')
+# nltk.download('punkt')
+ 
+ 
+STOPWORDS = set(nltk.corpus.stopwords.words('english'))
+STEMMER = nltk.stem.PorterStemmer()
+ 
+
+def extract_bag_of_words(doc):
+    terms = set()
+    for token in word_tokenize(doc):
+        if token not in STOPWORDS:
+            if not re.search(r'\d', token) and not re.search(r'[^A-Za-z-]', token): #Removing numbers and punctuations
+                #(excluding hyphenated words)
+                terms.add(STEMMER.stem(token.lower()))
+    return terms
 
 
 def read_texts(texts_file):
@@ -8,7 +29,7 @@ def read_texts(texts_file):
         for line in handler:
             tconst, text = line.strip().split("\t")
             assert tconst not in texts
-            texts[tconst] = text
+            texts[tconst] = " ".join(extract_bag_of_words(text))
         return texts
 
 
