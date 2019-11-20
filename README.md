@@ -18,3 +18,15 @@ Some data stats:
 
 
 imdb texts: https://yadi.sk/d/hUegPQkYorJctQ
+
+linear models 9 train parts predictions: https://yadi.sk/d/ammV5FWmcXRMYw
+files corespondance: predictions_0 -> u_0_m_0
+                     predictions_1 -> u_0_m_1
+                     predictions_2 -> u_0_m_2
+                     predictions_3 -> u_0_m_0
+                     predictions_4 -> u_0_m_1
+                     predictions_5 -> u_0_m_2
+                     predictions_6 -> u_0_m_0
+                     predictions_7 -> u_0_m_1
+                     predictions_8 -> u_0_m_2
+the scheme is: fold,user_id,movie_id,timestamp,prediction
