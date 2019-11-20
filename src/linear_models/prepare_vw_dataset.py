@@ -44,12 +44,21 @@ def read_sorted_ratings(sorted_ratings_file):
         return list(map(map_ratings_line, handler))
 
 
-def step_one_element_back(line):
+def cut_one_element_back(line):
     if line[-1] == '"':
         index = line[:-1].rfind('"')
         line = line[:index]
     split = line.split(",")[:-1]
     return ",".join(split)
+
+
+def get_back_element(line):
+    if line[-1] == '"':
+        index = line[:-1].rfind('"')
+        return line[(index + 1):-1]
+    else:
+        index = line.rfind(',')
+        return line[index:]
 
 
 def get_tconst_and_movie_id(line):
@@ -58,10 +67,16 @@ def get_tconst_and_movie_id(line):
     tconst = split[1]
 
     for i in range(6):
-        line = step_one_element_back(line)
+        line = cut_one_element_back(line)
     movie_id = int(line.split(",")[-1])
     
     return tconst, movie_id
+
+
+def get_title(line):
+    for i in range(5):
+        line = cut_one_element_back(line)
+    return get_back_element(line)
 
 
 def make_movie_id_to_tconst(imdb_file):
@@ -76,6 +91,17 @@ def make_movie_id_to_tconst(imdb_file):
     return movie_id_to_tconst
 
 
+def make_movie_id_to_title(imdb_file):
+    with open(imdb_file, 'r') as handler:
+        next(handler)
+        movie_id_to_title = {}
+        for line in handler:
+            tconst, movie_id = get_tconst_and_movie_id(line)
+            title = get_title(line):
+            movie_id_to_title[movie_id] = extract_bag_of_words(title)
+    return movie_id_to_title
+
+
 def make_movie_id_to_text(texts_file, imdb_file):
     tconst_to_texts = read_texts(texts_file)
     movie_id_to_tconst = make_movie_id_to_tconst(imdb_file)
@@ -88,27 +114,66 @@ def make_movie_id_to_text(texts_file, imdb_file):
     return movie_id_to_text
 
 
-def main(sorted_ratings_file, texts_file, imdb_file, output_file, min_rating, max_rating):
+def main(sorted_ratings_file, texts_file, imdb_file, output_file, height_rating, low_rating):
     movie_id_to_text = make_movie_id_to_text(texts_file, imdb_file)
+    movie_id_to_title = make_movie_id_to_title(imdb_file)
     print("movie_id_to_text map created")
     ratings = read_sorted_ratings(sorted_ratings_file)
     print("Ratings sorted")
 
     dataset = []
-    user_words = defaultdict(set)
+    user_height_rating_words = defaultdict(set)
+    user_low_rating_words = defaultdict(set)
+    user_height_rating_titles = defaultdict(set)
+    user_low_rating_titles = defaultdict(set)
     for i, (fold, user_id, movie_id, timestamp, rating) in enumerate(ratings):
         if i % 100000 == 0:
             print("Calculating intersections {} / {}".format(i, len(ratings)))
 
-        if movie_id not in movie_id_to_text:
-            dataset.append([fold, user_id, movie_id, timestamp, rating, ""])
-            continue
-        
-        intersetion_words = movie_id_to_text[movie_id] & user_words[user_id]
-        dataset.append([fold, user_id, movie_id, timestamp, rating, " ".join(intersetion_words)])
+        if movie_id in movie_id_to_text:
+            movie_text = movie_id_to_text[movie_id]
 
-        if (rating < max_rating) and (rating > min_rating):
-            user_words[user_id].update(movie_id_to_text[movie_id])
+            height_rating_intersetion_words = " ".join(user_height_rating_words[user_id] & movie_text)
+            low_rating_intersetion_words = " ".join(user_low_rating_words[user_id] & movie_text)
+
+            if rating > height_rating:
+                user_height_rating_words[user_id].update(movie_text)
+            if rating < low_rating:
+                user_low_rating_words[user_id].update(movie_text)
+        else:
+            height_rating_intersetion_words = "HAVE_NO_MOVIE_ID"
+            low_rating_intersetion_words = "HAVE_NO_MOVIE_ID"
+
+        if movie_id in movie_id_to_title:
+            movie_title = movie_id_to_title[movie_id]
+
+            height_rating_intersetion_title_words = " ".join(user_height_rating_titles[user_id] & movie_title)
+            low_rating_intersetion_title_words = " ".join(user_low_rating_titles[user_id] & movie_title)
+
+            if rating > height_rating:
+                user_height_rating_titles[user_id].update(movie_text)
+            if rating < low_rating:
+                user_low_rating_titles[user_id].update(movie_text)
+        else:
+            movie_title = "HAVE_NO_MOVIE_ID"
+            height_rating_intersetion_title_words = "HAVE_NO_MOVIE_ID"
+            low_rating_intersetion_title_words = "HAVE_NO_MOVIE_ID"
+
+        dataset.append([
+            fold,
+            user_id,
+            movie_id,
+            timestamp,
+            rating,
+            height_rating_intersetion_words,
+            low_rating_intersetion_words,
+            height_rating_intersetion_title_words,
+            low_rating_intersetion_title_words,
+            movie_title,
+            user_height_rating_titles[user_id],
+            user_low_rating_titles[user_id]
+        ])
+
 
     print("dataset is ready")
 
@@ -129,8 +194,8 @@ if __name__ == "__main__":
     parser.add_argument("--texts_file", required=True)
     parser.add_argument("--imdb_file", required=True)
     parser.add_argument("--output_file", required=True)
-    parser.add_argument("--min_rating", type=float, required=True)
-    parser.add_argument("--max_rating", type=float, required=True)
+    parser.add_argument("--height_rating", type=float, required=True)
+    parser.add_argument("--low_rating", type=float, required=True)
     args = parser.parse_args()
 
     main(
@@ -138,6 +203,6 @@ if __name__ == "__main__":
         args.texts_file,
         args.imdb_file,
         args.output_file,
-        args.min_rating,
-        args.max_rating
+        args.height_rating,
+        args.low_rating
     )
