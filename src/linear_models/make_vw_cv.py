@@ -5,7 +5,7 @@ import shutil
 
 
 def make_namespace(joined_words, name):
-    return "{}| LENGTH:{} {}".format(name, len(joined_words.split()), joined_words)
+    return " |{} LENGTH:{} {}".format(name, len(joined_words.split()), joined_words)
 
 
 def make_vw_line(line):
