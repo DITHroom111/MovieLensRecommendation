@@ -101,7 +101,7 @@ def main(sorted_ratings_file, texts_file, imdb_file, output_file, min_rating, ma
             print("Calculating intersections {} / {}".format(i, len(ratings)))
 
         if movie_id not in movie_id_to_text:
-            dataset.append([fold, user_id, movie_id, timestamp, rating])
+            dataset.append([fold, user_id, movie_id, timestamp, rating, ""])
             continue
         
         intersetion_words = movie_id_to_text[movie_id] & user_words[user_id]
