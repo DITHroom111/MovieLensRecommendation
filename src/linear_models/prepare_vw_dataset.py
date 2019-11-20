@@ -33,25 +33,34 @@ def read_texts(texts_file):
 
 
 def map_ratings_line(line):
-    user_id, movie_id, timestamp = list(map(int, line.strip().split(",")[:3]))
-    rating = float(line.strip().split(",")[3])
-    return user_id, movie_id, timestamp, rating
+    # [fold, user_id, movie_id, timestamp, rating]
+    types = [int, int, int, int, float]
+    values = line.strip().split("\t")
+    return list(map(lambda pair: pair[0](pair[1]), zip(types, values)))
 
 
-def read_sorted_ratings(ratings_file):
-    with open(ratings_file, 'r') as handler:
-        next(handler)
-        data = map(map_ratings_line, handler)
-        return sorted(data, key=lambda obj: obj[2])
+def read_sorted_ratings(sorted_ratings_file):
+    with open(sorted_ratings_file, 'r') as handler:
+        return list(map(map_ratings_line, handler))
+
+
+def step_one_element_back(line):
+    if line[-1] == '"':
+        index = line[:-1].rfind('"')
+        line = line[:index]
+    split = line.split(",")[:-1]
+    return ",".join(split)
 
 
 def get_tconst_and_movie_id(line):
-    line = line.strip()
-    if line.startswith("\""):
-        line = line[line.find("\"", 1):]
+    split = line.strip().split(",")
 
-    tconst = line.split(",")[1]
-    movie_id = int(line.split(",")[-5])
+    tconst = split[1]
+
+    for i in range(6):
+        line = step_one_element_back(line)
+    movie_id = int(line.split(",")[-1])
+    
     return tconst, movie_id
 
 
@@ -79,24 +88,24 @@ def make_movie_id_to_text(texts_file, imdb_file):
     return movie_id_to_text
 
 
-def main(ratings_file, texts_file, imdb_file, output_file, min_rating, max_rating):
+def main(sorted_ratings_file, texts_file, imdb_file, output_file, min_rating, max_rating):
     movie_id_to_text = make_movie_id_to_text(texts_file, imdb_file)
     print("movie_id_to_text map created")
-    ratings = read_sorted_ratings(ratings_file)
+    ratings = read_sorted_ratings(sorted_ratings_file)
     print("Ratings sorted")
 
     dataset = []
     user_words = defaultdict(set)
-    for i, (user_id, movie_id, timestamp, rating) in enumerate(ratings):
+    for i, (fold, user_id, movie_id, timestamp, rating) in enumerate(ratings):
         if i % 100000 == 0:
             print("Calculating intersections {} / {}".format(i, len(ratings)))
 
         if movie_id not in movie_id_to_text:
+            dataset.append([fold, user_id, movie_id, timestamp, rating])
             continue
         
         intersetion_words = movie_id_to_text[movie_id] & user_words[user_id]
-
-        dataset.append([user_id, movie_id, rating, " ".join(intersetion_words)])
+        dataset.append([fold, user_id, movie_id, timestamp, rating, " ".join(intersetion_words)])
 
         if (rating < max_rating) and (rating > min_rating):
             user_words[user_id].update(movie_id_to_text[movie_id])
@@ -106,16 +115,17 @@ def main(ratings_file, texts_file, imdb_file, output_file, min_rating, max_ratin
     with open(output_file, 'w') as handler:
         for i, obj in enumerate(dataset):
             if i % 100000 == 0:
-                print("Writing ooutput {} / {}".format(i, len(dataset)))
-            for string in map(str, obj):
+                print("Writing output {} / {}".format(i, len(dataset)))
+            for i, string in enumerate(map(str, obj)):
+                if i != 0:
+                    handler.write("\t")
                 handler.write(string)
-                handler.write("\t")
             handler.write("\n")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ratings_file", required=True)
+    parser.add_argument("--sorted_ratings_file", required=True)
     parser.add_argument("--texts_file", required=True)
     parser.add_argument("--imdb_file", required=True)
     parser.add_argument("--output_file", required=True)
@@ -124,7 +134,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(
-        args.ratings_file,
+        args.sorted_ratings_file,
         args.texts_file,
         args.imdb_file,
         args.output_file,
