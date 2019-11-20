@@ -155,7 +155,7 @@ def main(sorted_ratings_file, texts_file, imdb_file, output_file, height_rating,
             if rating < low_rating:
                 user_low_rating_titles[user_id].update(movie_title)
 
-            movie_title = " ".join(movie_title),
+            movie_title = " ".join(movie_title)
         else:
             movie_title = "HAVE_NO_MOVIE_ID"
             height_rating_intersetion_title_words = "HAVE_NO_MOVIE_ID"
