@@ -1,17 +1,18 @@
 # MovieLensRecommendation
-Recommendation system built on MovieLens dataset for MIPT ML on Big Data course
+Recommender system built on MovieLens dataset for Big Data ML course at MIPT
 
 Task: https://piazza.com/class/jz6qr7iba4i6no?cid=11
 
 ## What did we build?
-Main idea: create several strong independent features and train CatBoost using them. Also, we pick imdb dataset to get actors and some other features, and we get movie's descriptions from imdb web-site. CatBoost was trained on following features:
+Main idea: create several strong independent features and train CatBoost using them. We join movie data with IMDB dataset, which gave us casts, average ratings and some other features. We also scraped movie descriptions from IMDB. CatBoost was trained on following features:
 - user - movie ALS
 - user - genre ALS
 - user - actor ALS
-- linear model, trained on movies descriptions and descriptions of movies which got high rating from this user
-- BERT model trained in similar way
+- linear model, trained on movie descriptions and descriptions of movies which got high rating from the current user
+- similarity scores from BERT model pooled on collections of current user movies.
 - features from imdb: averageRating, isAdult, runtimeMinutes, numVotes, year, titleType (movie or series), genres
 - current month, difference between current year and movie year
+
 Also, for cold movie we have all features except ALS which is pretty strong one. Hence, we trained separate model for cold movies without ALS. For cold user we can say pretty much nothing, so we predict simply average rating for this movie.
 
 ## For developers
