@@ -17,6 +17,4 @@ Some data stats:
 - movies in dev:  16907
 
 
-imdb htmls: https://yadi.sk/d/2ybgIxmTymjZTw
-
-imdb texts: https://yadi.sk/d/10R2k_DwK067sg
+imdb texts: https://yadi.sk/d/hUegPQkYorJctQ

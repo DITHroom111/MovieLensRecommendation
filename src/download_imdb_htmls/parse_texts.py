@@ -13,14 +13,22 @@ def get_text_from_html(html_filename):
         return text
 
 
-def main(htmls_folder, output_file):
+def read_skip_keys(already_parsed_texts_file):
+    with open(already_parsed_texts_file, 'r') as handler:
+        return {line.strip().split("\t")[0] for line in handler}
+
+
+def main(htmls_folder, output_file, already_parsed_texts_file):
+    skip_keys = read_skip_keys(already_parsed_texts_file)
     html_filenames = os.listdir(htmls_folder)
     with open(output_file, 'w') as handler:
         for i, html_filename in enumerate(html_filenames):
             print("{} / {}".format(i, len(html_filenames)))
+            key = html_filename[:html_filename.find(".")]
+            if key in skip_keys:
+                continue
             try:
                 text = get_text_from_html(os.path.join(htmls_folder, html_filename))
-                key = html_filename[:html_filename.find(".")]
                 handler.write("{}\t{}\n".format(key, text))
             except:
                 pass
@@ -29,7 +37,8 @@ def main(htmls_folder, output_file):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--htmls_folder", required=True)
+    parser.add_argument("--already_parsed_texts_file", required=True)
     parser.add_argument("--output_file", required=True)
     args = parser.parse_args()
 
-    main(args.htmls_folder, args.output_file)
+    main(args.htmls_folder, args.output_file, args.already_parsed_texts_file)
