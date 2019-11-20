@@ -19,7 +19,7 @@ Some data stats:
 
 imdb texts: https://yadi.sk/d/hUegPQkYorJctQ
 
-linear models 9 train parts predictions: https://yadi.sk/d/ammV5FWmcXRMYw
+linear models 9 train parts predictions: https://yadi.sk/d/QAf6UewAefN1dg
 files corespondance: predictions_0 -> u_0_m_0
                      predictions_1 -> u_0_m_1
                      predictions_2 -> u_0_m_2
