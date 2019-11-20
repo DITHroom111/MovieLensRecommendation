@@ -1,0 +1,7 @@
+pandas
+numpy
+pyspark
+catboost
+lightfm
+scipy
+nltk
