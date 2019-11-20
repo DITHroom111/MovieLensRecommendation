@@ -97,7 +97,7 @@ def make_movie_id_to_title(imdb_file):
         movie_id_to_title = {}
         for line in handler:
             tconst, movie_id = get_tconst_and_movie_id(line)
-            title = get_title(line):
+            title = get_title(line)
             movie_id_to_title[movie_id] = extract_bag_of_words(title)
     return movie_id_to_title
 
