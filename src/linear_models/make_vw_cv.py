@@ -5,7 +5,7 @@ import shutil
 
 
 def make_namespace(joined_words, name):
-    return "{}| LENGTH:{} {}".format(name, len(joined_words.split()), words)
+    return "{}| LENGTH:{} {}".format(name, len(joined_words.split()), joined_words)
 
 
 def make_vw_line(line):
@@ -13,7 +13,7 @@ def make_vw_line(line):
 
     assert len(split) == 12
     fold, user_id, movie_id, timestamp = map(int, split[:4])
-    rating = float(split[5])
+    rating = float(split[4])
     height_rating_intersetion_words, low_rating_intersetion_words = split[5:7]
     height_rating_intersetion_title_words, low_rating_intersetion_title_words = split[7:9]
     movie_title, user_height_rating_titles, user_low_rating_titles = split[9:12]
@@ -55,7 +55,9 @@ def save_cv(parts, cv_folder):
 def main(dataset_file, cv_folder):
     parts = defaultdict(list)
     with open(dataset_file, 'r') as handler:
-        for line in handler:
+        for i, line in enumerate(handler):
+            if i % 100000 == 0:
+                print("process", i)
             folder = int(line.strip().split("\t")[0])
             parts[folder].append(make_vw_line(line))
     print("Parts calculated")
